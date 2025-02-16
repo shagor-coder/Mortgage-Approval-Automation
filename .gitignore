@@ -1,0 +1,35 @@
+# Python Virtual Environments
+.venv
+venv/
+env/
+*.pyc
+*.pyo
+__pycache__/
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Dependency Management
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Secrets & API Keys
+.env
+
+# Streamlit Cache & Config
+.streamlit/
+.streamlit/secrets.toml
+
+# Log Files
+*.log
+logs/
+
+# Tesseract Executable & Data (if using standalone)
+tesseract/
+tessdata/
+*.exe
+*.dll

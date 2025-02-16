@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "languages": {
+    "nodejs-npm": {
+      "specfileHash": "f0f40db9fed289f56bf21a12caf6995b",
+      "lockfileHash": "5ef285e339797b1c6e49ff3ea860cd65"
+    },
+    "python3-uv": {
+      "specfileHash": "fc67a8d22c2e2b70408668a692e01622",
+      "lockfileHash": "fd30b031c888c09a625864453d53c7e1"
+    }
+  }
+}
