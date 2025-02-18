@@ -6,7 +6,10 @@ import re
 import fitz  # PyMuPDF for better image extraction
 
 
-TESSERACT_PATH = r"tesseract\tesseract.exe"
+# TESSERACT_PATH = r"tesseract\tesseract.exe"
+# pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+
+TESSERACT_PATH = "/usr/bin/tesseract"
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 def clean_extracted_text(text):

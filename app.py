@@ -1,13 +1,28 @@
 import streamlit as st
-# import io
+import io
 from document_processor import process_document
 from classifier import classify_document
 from income_extractor import IncomeExtractor
 from utils import is_valid_file, display_results
 import tempfile
 import os
+import platform
+import subprocess
 from helpers.get_gpt_response import analyze_loan_approval
 import asyncio
+
+def install_tesseract():
+    if platform.system() == "Linux":
+        try:
+            print("Installing Tesseract OCR...")
+            subprocess.run(["sudo", "apt-get", "update"], check=True)
+            subprocess.run(["sudo", "apt-get", "install", "-y", "tesseract-ocr"], check=True)
+            print("Tesseract installed successfully!")
+        except Exception as e:
+            print(f"Error installing Tesseract: {str(e)}")
+
+# Install Tesseract only if running on Streamlit Cloud (Linux)
+install_tesseract()
 
 st.set_page_config(
     page_title="Document Classifier",
