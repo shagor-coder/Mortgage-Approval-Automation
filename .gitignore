@@ -27,9 +27,3 @@ poetry.lock
 # Log Files
 *.log
 logs/
-
-# Tesseract Executable & Data (if using standalone)
-tesseract/
-tessdata/
-*.exe
-*.dll

@@ -1,11 +1,13 @@
 import PyPDF2
 from PIL import Image
 import pytesseract
-# import io
+import io
 import re
+import fitz  # PyMuPDF for better image extraction
 
-# TESSERACT_PATH = r"C:\Tesseract-TEMP\tesseract.exe"
-# pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+
+TESSERACT_PATH = r"tesseract\tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 def clean_extracted_text(text):
     """Clean extracted text by removing extra whitespace and normalizing line breaks"""
@@ -26,36 +28,43 @@ def process_document(file_path, mime_type):
         raise ValueError(f"Unsupported file type: {mime_type}")
 
 def process_pdf(file_path):
-    """Extract text from PDF file"""
-    text = ""
-    try:
-        with open(file_path, 'rb') as file:
-            pdf_reader = PyPDF2.PdfReader(file)
-            for page_num, page in enumerate(pdf_reader.pages):
-                page_text = page.extract_text()
-                text += page_text + "\n"
+    """Extract text from all pages of a PDF, including scanned images using OCR."""
+    full_text = ""  # Store extracted text from all pages
 
-                # If no text was extracted, try extracting text from images in the PDF
-                if not page_text.strip():
-                   
-                    try:
-                        if '/XObject' in page['/Resources']:
-                            xObject = page['/Resources']['/XObject'].get_object()
-                            for obj in xObject:
-                                if xObject[obj]['/Subtype'] == '/Image':
-                                    image = Image.frombytes(
-                                        'RGB',
-                                        [xObject[obj]['/Width'], xObject[obj]['/Height']],
-                                        xObject[obj].get_data()
-                                    )
-                                    image_text = pytesseract.image_to_string(image, config='--psm 3 --oem 3')
-                                   
-                                    text += image_text + "\n"
-                    except Exception as e:
-                        cleaned_text = clean_extracted_text(text)
-                        return cleaned_text
+    try:
+        # Open the PDF using PyMuPDF (better than PyPDF2)
+        pdf_document = fitz.open(file_path)
+        
+        for page_num in range(len(pdf_document)):  # Loop through all pages
+            page = pdf_document[page_num]
+
+            
+            # Extract selectable text
+            page_text = page.get_text("text")
+
+            full_text += f"\n--- Page {page_num + 1} ---\n"
+            full_text += page_text + "\n"
+
+            # If no text was found, extract images and run OCR
+            if not page_text.strip():
+                image_list = page.get_images(full=True)
+                
+                for img_index, img in enumerate(image_list):
+                    xref = img[0]  # Get image reference
+                    base_image = pdf_document.extract_image(xref)
+                    image_bytes = base_image["image"]
+                    
+                    # Convert to PIL Image
+                    image = Image.open(io.BytesIO(image_bytes))
+                    
+                    # Run OCR on the image using Tesseract
+                    image_text = pytesseract.image_to_string(image, config='--psm 3 --oem 3')
+                    
+                    full_text += f"\n[Image {img_index + 1} OCR Result on Page {page_num + 1}]\n{image_text}\n"
+
     except Exception as e:
-        raise Exception(f"Error processing PDF: {str(e)}")
+        return f"Error processing PDF: {str(e)}"
+    return full_text.strip()  # Return cleaned extracted text from all pages
 
 def process_image(file_path):
     """Extract text from image using OCR"""

@@ -17,7 +17,7 @@ st.set_page_config(
 
 def main():
     st.title("Document Classification System")
-    st.write("Upload PDFs and images to classify them and extract income information")
+    st.write("Upload PDFs and images to classify them and extract income information.")
 
     # Initialize income extractor
     income_extractor = IncomeExtractor()
@@ -37,20 +37,22 @@ def main():
         for idx, file in enumerate(uploaded_files):
             try:
                 if is_valid_file(file):
-                    # Create temporary file
+                    # Create a temporary file
                     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
                         tmp_file.write(file.getvalue())
                         tmp_file_path = tmp_file.name
 
-                    # Process document
+                    # Process document (Extract text from PDF or Image)
                     processed_content = process_document(tmp_file_path, file.type)
-
-                    # Classify document
+                    
+                    # Classify document type
                     doc_type = classify_document(processed_content)
+                    income_data = {}  # Initialize income data dictionary
 
-                    # Extract income from all documents
-                    income_data = income_extractor.extract_income(processed_content, doc_type);
+                    # Extract income for single-page documents (e.g., images)
+                    income_data = income_extractor.extract_income(processed_content, doc_type)
 
+                    # Store results
                     results.append({
                         'filename': file.name,
                         'type': doc_type,
@@ -60,6 +62,7 @@ def main():
 
                     # Clean up temporary file
                     os.unlink(tmp_file_path)
+
                 else:
                     results.append({
                         'filename': file.name,
@@ -68,7 +71,7 @@ def main():
                         'message': 'Invalid file format'
                     })
 
-                # Update progress
+                # Update progress bar
                 progress = (idx + 1) / len(uploaded_files)
                 progress_bar.progress(progress)
                 status_text.text(f'Processing file {idx + 1} of {len(uploaded_files)}')
@@ -81,18 +84,22 @@ def main():
                     'message': str(e)
                 })
 
+        # Clear progress bar and status message
         progress_bar.empty()
         status_text.empty()
 
+        # Call AI for loan approval analysis
         with st.status("Analyzing loan eligibility with AI...", expanded=True) as status:
-                # Run GPT-4o analysis
-                gptresponse =  asyncio.run(analyze_loan_approval(results))
-                # Update status
+            try:
+                gpt_response = asyncio.run(analyze_loan_approval(results))
                 status.update(label="Loan analysis completed!", state="complete", expanded=False)
+            except Exception as e:
+                status.update(label="Loan analysis failed!", state="error", expanded=False)
+                gpt_response = f"Error: {str(e)}"
+                st.error(f"AI analysis failed: {str(e)}")
 
-            # Display GPT-4o response
-        st.markdown(f"### Loan Decision: \n {gptresponse}")
-
+        # Display AI decision
+        st.markdown(f"### Loan Decision: \n {gpt_response}")
 
         # Display results
         display_results(results)
