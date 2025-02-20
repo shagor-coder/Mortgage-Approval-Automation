@@ -27,3 +27,8 @@ poetry.lock
 # Log Files
 *.log
 logs/
+
+# Tesseract Cache & Config
+/tesseract
+*.dll
+*.exe

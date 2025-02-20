@@ -6,23 +6,8 @@ from income_extractor import IncomeExtractor
 from utils import is_valid_file, display_results
 import tempfile
 import os
-import platform
-import subprocess
 from helpers.get_gpt_response import analyze_loan_approval
 import asyncio
-
-def install_tesseract():
-    if platform.system() == "Linux":
-        try:
-            print("Installing Tesseract OCR...")
-            subprocess.run(["sudo", "apt-get", "update"], check=True)
-            subprocess.run(["sudo", "apt-get", "install", "-y", "tesseract-ocr"], check=True)
-            print("Tesseract installed successfully!")
-        except Exception as e:
-            print(f"Error installing Tesseract: {str(e)}")
-
-# Install Tesseract only if running on Streamlit Cloud (Linux)
-install_tesseract()
 
 st.set_page_config(
     page_title="Document Classifier",
@@ -64,6 +49,8 @@ def main():
                     doc_type = classify_document(processed_content)
                     income_data = {}  # Initialize income data dictionary
 
+                    
+
                     # Extract income for single-page documents (e.g., images)
                     income_data = income_extractor.extract_income(processed_content, doc_type)
 
@@ -103,21 +90,22 @@ def main():
         progress_bar.empty()
         status_text.empty()
 
-        # Call AI for loan approval analysis
-        with st.status("Analyzing loan eligibility with AI...", expanded=True) as status:
-            try:
-                gpt_response = asyncio.run(analyze_loan_approval(results))
-                status.update(label="Loan analysis completed!", state="complete", expanded=False)
-            except Exception as e:
-                status.update(label="Loan analysis failed!", state="error", expanded=False)
-                gpt_response = f"Error: {str(e)}"
-                st.error(f"AI analysis failed: {str(e)}")
-
-        # Display AI decision
-        st.markdown(f"### Loan Decision: \n {gpt_response}")
-
         # Display results
         display_results(results)
+
+            # Call AI for loan approval analysis
+        if doc_type.lower() != "unknown":
+            with st.status("Analyzing loan eligibility with AI...", expanded=True) as status:
+                try:
+                    gpt_response = asyncio.run(analyze_loan_approval(results))
+                    status.update(label="Loan analysis completed!", state="complete", expanded=False)
+                except Exception as e:
+                    status.update(label="Loan analysis failed!", state="error", expanded=False)
+                    gpt_response = f"Error: {str(e)}"
+                    st.error(f"AI analysis failed: {str(e)}")
+
+            # Display AI decision
+            st.markdown(f"### Loan Decision: \n {gpt_response}")
 
 if __name__ == "__main__":
     main()

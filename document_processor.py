@@ -1,16 +1,11 @@
-import PyPDF2
 from PIL import Image
 import pytesseract
 import io
 import re
-import fitz  # PyMuPDF for better image extraction
+import fitz
 
-
-# TESSERACT_PATH = r"tesseract\tesseract.exe"
+# TESSERACT_PATH = r"D:\Python Apps\Mortgage Approval Automation\tesseract\tesseract.exe"
 # pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
-
-TESSERACT_PATH = "/usr/bin/tesseract"
-pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 def clean_extracted_text(text):
     """Clean extracted text by removing extra whitespace and normalizing line breaks"""
